@@ -21,8 +21,35 @@
 <body class="bg-slate-50 font-sans text-gray-900">
     <div id="app" v-cloak class="min-h-screen">
         
+        <!-- DATABASE ERROR SCREEN FOR VERCEL DEPLOYMENT -->
+        <div v-if="dbError" class="min-h-screen bg-slate-50 flex items-center justify-center p-4">
+            <div class="bg-white p-8 rounded-xl shadow-lg max-w-2xl w-full border-t-4 border-indigo-600">
+                <div class="flex items-center justify-center w-16 h-16 bg-indigo-100 rounded-full mb-6 mx-auto">
+                    <i class="fas fa-database text-2xl text-indigo-600"></i>
+                </div>
+                <h1 class="text-2xl font-bold text-center text-gray-900 mb-2">Database Connection Required</h1>
+                <p class="text-gray-600 text-center mb-8">
+                    You have successfully deployed the code! However, because this application saves user profiles, resumes, and messages, it requires a database connection to function outside of the preview environment.
+                </p>
+                
+                <div class="bg-indigo-50/50 rounded-lg p-6 border border-indigo-100 mb-6">
+                    <h3 class="font-bold text-indigo-900 mb-4 text-lg">How to connect your database (Free):</h3>
+                    <ol class="list-decimal list-inside space-y-4 text-gray-700">
+                        <li>Go to the <a href="https://console.firebase.google.com/" target="_blank" class="text-indigo-600 font-bold hover:underline">Firebase Console</a> and create a project.</li>
+                        <li>Enable <strong>Firestore Database</strong> (Choose <em>Test Mode</em>).</li>
+                        <li>Enable <strong>Authentication</strong> (Enable the <em>Anonymous</em> sign-in method).</li>
+                        <li>Go to Project Settings, add a Web App (<code>&lt;/&gt;</code>), and copy the <code>firebaseConfig</code> variables.</li>
+                        <li>Open this code in Vercel or your editor, and paste the values into the <code>manualConfig</code> variable at the bottom of the file (around line 830).</li>
+                    </ol>
+                </div>
+                <div class="text-xs text-gray-400 text-center bg-gray-50 p-3 rounded">
+                    <strong>Technical Error:</strong> {{ dbError }}
+                </div>
+            </div>
+        </div>
+
         <!-- LOADING SCREEN -->
-        <div v-if="isAuthLoading" class="min-h-screen flex items-center justify-center bg-slate-50">
+        <div v-else-if="isAuthLoading" class="min-h-screen flex items-center justify-center bg-slate-50">
             <div class="animate-spin rounded-full h-12 w-12 border-b-2 border-indigo-600"></div>
         </div>
 
@@ -680,10 +707,41 @@
 
         const { createApp, ref, computed, onMounted } = Vue;
 
-        const firebaseConfig = typeof __firebase_config !== 'undefined' ? JSON.parse(__firebase_config) : {};
-        const app = initializeApp(firebaseConfig);
-        const auth = getAuth(app);
-        const db = getFirestore(app);
+        // =========================================================================
+        // VERCEL / STANDALONE DEPLOYMENT CONFIGURATION
+        // If you are deploying this to Vercel, paste your Firebase config here:
+        // =========================================================================
+        const manualConfig = {
+            apiKey: "",
+            authDomain: "",
+            projectId: "",
+            storageBucket: "",
+            messagingSenderId: "",
+            appId: ""
+        };
+
+        const manualGeminiKey = ""; // Optional: Paste your Gemini API key here for AI Roleplay
+
+        let appInstance, auth, db;
+        let initializationError = null;
+
+        try {
+            let finalConfig = null;
+            if (typeof __firebase_config !== 'undefined' && __firebase_config) {
+                finalConfig = JSON.parse(__firebase_config);
+            } else if (manualConfig.apiKey) {
+                finalConfig = manualConfig;
+            } else {
+                throw new Error("Missing Firebase Config. Please add your credentials to 'manualConfig' in the code.");
+            }
+
+            appInstance = initializeApp(finalConfig);
+            auth = getAuth(appInstance);
+            db = getFirestore(appInstance);
+        } catch (e) {
+            initializationError = e.message;
+        }
+
         const appId = typeof __app_id !== 'undefined' ? __app_id : 'default-app-id';
 
         const INITIAL_RESUME = {
@@ -704,9 +762,10 @@
 
         createApp({
             setup() {
+                const dbError = ref(initializationError);
                 const user = ref(null);
                 const profile = ref(null);
-                const isAuthLoading = ref(true);
+                const isAuthLoading = ref(!initializationError);
                 const dataLoaded = ref(false);
 
                 const activeTab = ref('jobs');
@@ -765,6 +824,8 @@
                 const getColRef = (colName) => collection(db, 'artifacts', appId, 'public', 'data', colName);
 
                 onMounted(async () => {
+                    if (dbError.value) return; // Stop if database failed to initialize
+
                     try {
                         if (typeof __initial_auth_token !== 'undefined' && __initial_auth_token) {
                             await signInWithCustomToken(auth, __initial_auth_token);
@@ -773,6 +834,9 @@
                         }
                     } catch (err) {
                         console.error("Auth error:", err);
+                        dbError.value = "Authentication failed: " + err.message + ". Please ensure Anonymous Sign-In is enabled in Firebase.";
+                        isAuthLoading.value = false;
+                        return;
                     }
 
                     onAuthStateChanged(auth, (u) => {
@@ -948,7 +1012,8 @@
                     try {
                         const initialPrompt = { role: 'user', parts: [{ text: 'Hello, I am ready to start.' }] };
                         const payload = { contents: [initialPrompt], systemInstruction: { parts: [{ text: scenario.prompt }] } };
-                        const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-3-flash-preview:generateContent?key=`, {
+                        const apiKey = manualGeminiKey || "";
+                        const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-3-flash-preview:generateContent?key=${apiKey}`, {
                             method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload)
                         });
                         const result = await response.json();
@@ -969,7 +1034,8 @@
 
                     try {
                         const payload = { contents: chatHistory.value, systemInstruction: { parts: [{ text: selectedScenario.value.prompt }] } };
-                        const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-3-flash-preview:generateContent?key=`, {
+                        const apiKey = manualGeminiKey || "";
+                        const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-3-flash-preview:generateContent?key=${apiKey}`, {
                             method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload)
                         });
                         const result = await response.json();
@@ -1036,6 +1102,7 @@
                 };
 
                 return {
+                    dbError,
                     user, profile, isAuthLoading, activeTab, allUsers, jobs, messages, applications,
                     appData, resumeData, setupForm, newJob, notification, applyingToJob, appSignature, appDate, viewingApplicants,
                     messageView, activeMessage, composeRecipient, composeExternalEmail, composeSubject, composeBody, replyTo,

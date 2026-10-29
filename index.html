@@ -124,6 +124,10 @@
                                 <i class="fas fa-user-circle text-indigo-200 mr-2 text-lg"></i>
                                 {{ profile?.name }}
                             </div>
+                            <!-- LOGOUT BUTTON -->
+                            <button @click="handleLogout" class="text-indigo-200 hover:text-white transition-colors" title="Log Out">
+                                <i class="fas fa-sign-out-alt text-lg"></i>
+                            </button>
                         </div>
                     </div>
                 </div>
@@ -702,7 +706,8 @@
     <!-- MAIN VUE APPLICATION LOGIC -->
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
-        import { getAuth, signInAnonymously, signInWithCustomToken, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
+        // IMPORT signOut included here
+        import { getAuth, signInAnonymously, signInWithCustomToken, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
         import { getFirestore, doc, setDoc, updateDoc, onSnapshot, collection, deleteDoc } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
 
         const { createApp, ref, computed, onMounted } = Vue;
@@ -874,6 +879,20 @@
                 });
 
                 // Methods
+
+                // LOGOUT FUNCTION 
+                const handleLogout = async () => {
+                    try {
+                        await signOut(auth);
+                        // Reloading the page clears the local app state and forces 
+                        // Firebase to generate a new anonymous auth session on mount.
+                        window.location.reload(); 
+                    } catch (err) {
+                        console.error(err);
+                        showNotification('Failed to log out.');
+                    }
+                };
+
                 const handleSetupProfile = async () => {
                     await setDoc(doc(getColRef('users'), user.value.uid), setupForm.value);
                     activeTab.value = setupForm.value.role === 'student' ? 'dashboard' : 'jobs';
@@ -1110,7 +1129,7 @@
                     handleSetupProfile, switchRoleTest, handleAddJob, handleSaveResume, handleSaveAppProgress, hasApplied,
                     handleOpenApply, handleConfirmApply, getJobAppsCount, getJobApps, updateApplicationStatus, handleSendMessage,
                     handleReadMessage, handleDeleteMessage, handleDeleteUser, handleRoleChange, handleUpdateUserField, getStatusColors,
-                    startScenario, handleSendAiMessage, handlePrintResume, handleExportScenario
+                    startScenario, handleSendAiMessage, handlePrintResume, handleExportScenario, handleLogout
                 };
             }
         }).mount('#app');

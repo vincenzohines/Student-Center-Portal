@@ -962,7 +962,11 @@
                         showNotification('Successfully logged in!');
                     } catch (err) {
                         console.error(err);
-                        showNotification(err.message.replace('Firebase:', '').trim());
+                        if (err.code === 'auth/operation-not-allowed') {
+                            showNotification("Setup Required: Please enable 'Email/Password' in your Firebase Console Authentication settings.");
+                        } else {
+                            showNotification(err.message.replace('Firebase:', '').trim());
+                        }
                     } finally {
                         isAuthLoading.value = false;
                     }
@@ -984,7 +988,11 @@
                         showNotification('Account created successfully!');
                     } catch (err) {
                         console.error(err);
-                        showNotification(err.message.replace('Firebase:', '').trim());
+                        if (err.code === 'auth/operation-not-allowed') {
+                            showNotification("Setup Required: Please enable 'Email/Password' in your Firebase Console Authentication settings.");
+                        } else {
+                            showNotification(err.message.replace('Firebase:', '').trim());
+                        }
                     } finally {
                         isAuthLoading.value = false;
                     }

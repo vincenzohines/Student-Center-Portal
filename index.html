@@ -85,7 +85,7 @@
                 <form v-if="authMode === 'register'" @submit.prevent="handleRegister" class="space-y-4">
                     <div>
                         <label class="block text-sm font-medium text-gray-700 mb-1">I am a...</label>
-                        <div class="grid grid-cols-2 gap-4">
+                        <div class="grid grid-cols-3 gap-4">
                             <label class="cursor-pointer">
                                 <input type="radio" v-model="registerForm.role" value="student" class="peer sr-only" required />
                                 <div class="text-center p-3 border rounded-lg peer-checked:bg-indigo-50 peer-checked:border-indigo-600 peer-checked:text-indigo-700 hover:bg-gray-50 transition text-sm">Student</div>
@@ -93,6 +93,10 @@
                             <label class="cursor-pointer">
                                 <input type="radio" v-model="registerForm.role" value="teacher" class="peer sr-only" required />
                                 <div class="text-center p-3 border rounded-lg peer-checked:bg-indigo-50 peer-checked:border-indigo-600 peer-checked:text-indigo-700 hover:bg-gray-50 transition text-sm">Teacher</div>
+                            </label>
+                            <label class="cursor-pointer">
+                                <input type="radio" v-model="registerForm.role" value="admin" class="peer sr-only" required />
+                                <div class="text-center p-3 border rounded-lg peer-checked:bg-indigo-50 peer-checked:border-indigo-600 peer-checked:text-indigo-700 hover:bg-gray-50 transition text-sm">Admin</div>
                             </label>
                         </div>
                     </div>
@@ -124,7 +128,7 @@
                 <form @submit.prevent="handleSetupProfile" class="space-y-6">
                     <div>
                         <label class="block text-sm font-medium text-gray-700 mb-1">I am a...</label>
-                        <div class="grid grid-cols-2 gap-4">
+                        <div class="grid grid-cols-3 gap-4">
                             <label class="cursor-pointer">
                                 <input type="radio" v-model="setupForm.role" value="student" class="peer sr-only" required />
                                 <div class="text-center p-4 border rounded-lg peer-checked:bg-indigo-50 peer-checked:border-indigo-600 peer-checked:text-indigo-700 hover:bg-gray-50 transition">
@@ -135,6 +139,12 @@
                                 <input type="radio" v-model="setupForm.role" value="teacher" class="peer sr-only" required />
                                 <div class="text-center p-4 border rounded-lg peer-checked:bg-indigo-50 peer-checked:border-indigo-600 peer-checked:text-indigo-700 hover:bg-gray-50 transition">
                                     Teacher
+                                </div>
+                            </label>
+                            <label class="cursor-pointer">
+                                <input type="radio" v-model="setupForm.role" value="admin" class="peer sr-only" required />
+                                <div class="text-center p-4 border rounded-lg peer-checked:bg-indigo-50 peer-checked:border-indigo-600 peer-checked:text-indigo-700 hover:bg-gray-50 transition">
+                                    Admin
                                 </div>
                             </label>
                         </div>
@@ -172,13 +182,14 @@
                             <button @click="activeTab = 'messages'" :class="{'bg-indigo-700': activeTab === 'messages', 'hover:bg-indigo-500': activeTab !== 'messages'}" class="px-3 py-2 rounded-md text-sm font-medium transition-colors">Messages</button>
                             <button v-if="role === 'student'" @click="activeTab = 'resume'" :class="{'bg-indigo-700': activeTab === 'resume', 'hover:bg-indigo-500': activeTab !== 'resume'}" class="px-3 py-2 rounded-md text-sm font-medium transition-colors">My Resume</button>
                             <button v-if="role === 'student'" @click="activeTab = 'roleplay'" :class="{'bg-indigo-700': activeTab === 'roleplay', 'hover:bg-indigo-500': activeTab !== 'roleplay'}" class="px-3 py-2 rounded-md text-sm font-medium transition-colors">AI Role Play</button>
-                            <button v-if="role === 'teacher'" @click="activeTab = 'users'" :class="{'bg-indigo-700': activeTab === 'users', 'hover:bg-indigo-500': activeTab !== 'users'}" class="px-3 py-2 rounded-md text-sm font-medium transition-colors">Manage Users</button>
+                            <button v-if="role === 'admin'" @click="activeTab = 'admin'" :class="{'bg-indigo-700': activeTab === 'admin', 'hover:bg-indigo-500': activeTab !== 'admin'}" class="px-3 py-2 rounded-md text-sm font-medium transition-colors">Admin Panel</button>
                         </div>
                         <div class="flex items-center space-x-4">
                             <!-- DEMO TOOL -->
                             <div class="hidden md:flex bg-indigo-800 rounded-lg p-1">
                                 <button @click="switchRoleTest('student')" :class="{'bg-white text-indigo-800 shadow': role === 'student', 'text-indigo-200 hover:text-white': role !== 'student'}" class="px-3 py-1 text-xs font-semibold rounded-md transition-colors">Student View</button>
                                 <button @click="switchRoleTest('teacher')" :class="{'bg-white text-indigo-800 shadow': role === 'teacher', 'text-indigo-200 hover:text-white': role !== 'teacher'}" class="px-3 py-1 text-xs font-semibold rounded-md transition-colors">Teacher View</button>
+                                <button @click="switchRoleTest('admin')" :class="{'bg-white text-indigo-800 shadow': role === 'admin', 'text-indigo-200 hover:text-white': role !== 'admin'}" class="px-3 py-1 text-xs font-semibold rounded-md transition-colors">Admin View</button>
                             </div>
                             <div class="flex items-center text-sm font-medium bg-indigo-700 px-3 py-1.5 rounded-full">
                                 <i class="fas fa-user-circle text-indigo-200 mr-2 text-lg"></i>
@@ -555,11 +566,11 @@
                     </div>
                 </div>
 
-                <!-- MANAGE USERS -->
-                <div v-if="activeTab === 'users' && role === 'teacher'" class="max-w-5xl mx-auto space-y-6">
+                <!-- ADMIN PANEL -->
+                <div v-if="activeTab === 'admin' && role === 'admin'" class="max-w-5xl mx-auto space-y-6">
                     <div class="flex justify-between items-center border-b pb-4">
                         <div>
-                            <h2 class="text-2xl font-bold text-gray-800 flex items-center"><i class="fas fa-users mr-2 text-indigo-600"></i> Manage Users</h2>
+                            <h2 class="text-2xl font-bold text-gray-800 flex items-center"><i class="fas fa-shield-alt mr-2 text-indigo-600"></i> Admin Panel</h2>
                             <p class="text-gray-500 text-sm">View and manage registered students and teachers.</p>
                         </div>
                     </div>
@@ -583,6 +594,7 @@
                                         <select v-model="u.role" @change="handleRoleChange(u.id, u.role)" :disabled="u.id === user.uid" class="text-sm bg-gray-50 border border-gray-200 rounded-md focus:ring-indigo-500 focus:border-indigo-500 py-1.5 px-2">
                                             <option value="student">Student</option>
                                             <option value="teacher">Teacher</option>
+                                            <option value="admin">Admin</option>
                                         </select>
                                     </td>
                                     <td class="p-4 text-right">
@@ -922,7 +934,8 @@
 
                                 profile.value = myProf || null;
                                 if (myProf && activeTab.value === 'dashboard' && myProf.role === 'teacher') activeTab.value = 'jobs';
-                                if (myProf && myProf.role === 'student' && (!activeTab.value || activeTab.value === 'users')) activeTab.value = 'dashboard';
+                                if (myProf && activeTab.value === 'dashboard' && myProf.role === 'admin') activeTab.value = 'admin';
+                                if (myProf && myProf.role === 'student' && (!activeTab.value || activeTab.value === 'users' || activeTab.value === 'admin')) activeTab.value = 'dashboard';
                             });
 
                             onSnapshot(getColRef('jobs'), (snap) => {
@@ -1000,14 +1013,14 @@
 
                 const handleSetupProfile = async () => {
                     await setDoc(doc(getColRef('users'), user.value.uid), setupForm.value);
-                    activeTab.value = setupForm.value.role === 'student' ? 'dashboard' : 'jobs';
+                    activeTab.value = setupForm.value.role === 'student' ? 'dashboard' : setupForm.value.role === 'admin' ? 'admin' : 'jobs';
                     showNotification(`Welcome, ${setupForm.value.name}!`);
                 };
 
                 const switchRoleTest = async (newRole) => {
                     if (!profile.value) return;
                     await updateDoc(doc(getColRef('users'), user.value.uid), { role: newRole });
-                    activeTab.value = newRole === 'student' ? 'dashboard' : 'jobs';
+                    activeTab.value = newRole === 'student' ? 'dashboard' : newRole === 'admin' ? 'admin' : 'jobs';
                 };
 
                 const handleAddJob = async () => {

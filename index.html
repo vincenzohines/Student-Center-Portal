@@ -587,7 +587,7 @@
                                     <td class="p-4"><input v-model="u.username" @blur="handleUpdateUserField(u.id, 'username', u.username)" placeholder="Set email/username" class="w-full text-sm text-gray-700 bg-transparent border-b border-transparent hover:border-gray-300 focus:border-indigo-500 focus:ring-0 outline-none py-1 transition-colors" /></td>
                                     <td class="p-4"><input v-model="u.password" @blur="handleUpdateUserField(u.id, 'password', u.password)" placeholder="Set password" class="w-full text-sm text-gray-700 bg-transparent border-b border-transparent hover:border-gray-300 focus:border-indigo-500 focus:ring-0 outline-none py-1 transition-colors" /></td>
                                     <td class="p-4">
-                                        <select v-model="u.role" @change="handleRoleChange(u.id, u.role)" :disabled="u.id === user.uid" class="text-sm bg-gray-50 border border-gray-200 rounded-md focus:ring-indigo-500 focus:border-indigo-500 py-1.5 px-2">
+                                        <select v-model="u.role" @change="handleRoleChange(u.id, u.role)" class="text-sm bg-gray-50 border border-gray-200 rounded-md focus:ring-indigo-500 focus:border-indigo-500 py-1.5 px-2">
                                             <option value="student">Student</option>
                                             <option value="teacher">Teacher</option>
                                             <option value="admin">Admin</option>
@@ -958,6 +958,7 @@
                             if (unsubMsgs) unsubMsgs();
                             profile.value = null;
                             dataLoaded.value = false;
+                            activeTab.value = 'jobs'; // Reset tab gracefully on logout
                         }
                     });
                 });

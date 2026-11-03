@@ -181,11 +181,11 @@
                             <button v-if="role === 'admin'" @click="activeTab = 'admin'" :class="{'bg-indigo-700': activeTab === 'admin', 'hover:bg-indigo-500': activeTab !== 'admin'}" class="px-3 py-2 rounded-md text-sm font-medium transition-colors">Admin Panel</button>
                         </div>
                         <div class="flex items-center space-x-4">
-                            <!-- DEMO TOOL -->
+                            <!-- ROLE NAVIGATION -->
                             <div class="hidden md:flex bg-indigo-800 rounded-lg p-1">
-                                <button @click="switchRoleTest('student')" :class="{'bg-white text-indigo-800 shadow': role === 'student', 'text-indigo-200 hover:text-white': role !== 'student'}" class="px-3 py-1 text-xs font-semibold rounded-md transition-colors">Student View</button>
-                                <button @click="switchRoleTest('teacher')" :class="{'bg-white text-indigo-800 shadow': role === 'teacher', 'text-indigo-200 hover:text-white': role !== 'teacher'}" class="px-3 py-1 text-xs font-semibold rounded-md transition-colors">Teacher View</button>
-                                <button @click="switchRoleTest('admin')" :class="{'bg-white text-indigo-800 shadow': role === 'admin', 'text-indigo-200 hover:text-white': role !== 'admin'}" class="px-3 py-1 text-xs font-semibold rounded-md transition-colors">Admin View</button>
+                                <button @click="attemptRoleAccess('student')" :class="{'bg-white text-indigo-800 shadow': role === 'student', 'text-indigo-200 hover:text-white': role !== 'student'}" class="px-3 py-1 text-xs font-semibold rounded-md transition-colors">Student View</button>
+                                <button @click="attemptRoleAccess('teacher')" :class="{'bg-white text-indigo-800 shadow': role === 'teacher', 'text-indigo-200 hover:text-white': role !== 'teacher'}" class="px-3 py-1 text-xs font-semibold rounded-md transition-colors">Teacher View</button>
+                                <button @click="attemptRoleAccess('admin')" :class="{'bg-white text-indigo-800 shadow': role === 'admin', 'text-indigo-200 hover:text-white': role !== 'admin'}" class="px-3 py-1 text-xs font-semibold rounded-md transition-colors">Admin View</button>
                             </div>
                             <div class="flex items-center text-sm font-medium bg-indigo-700 px-3 py-1.5 rounded-full">
                                 <i class="fas fa-user-circle text-indigo-200 mr-2 text-lg"></i>
@@ -1024,10 +1024,16 @@
                     showNotification(`Welcome, ${setupForm.value.name}!`);
                 };
 
-                const switchRoleTest = async (newRole) => {
+                const attemptRoleAccess = async (targetRole) => {
                     if (!profile.value) return;
-                    await updateDoc(doc(getColRef('users'), user.value.uid), { role: newRole });
-                    activeTab.value = newRole === 'student' ? 'dashboard' : newRole === 'admin' ? 'admin' : 'jobs';
+                    
+                    if (profile.value.role !== targetRole) {
+                        showNotification(`Access Denied: Please sign in with a ${targetRole} account to view this page.`);
+                        await handleLogout();
+                        return;
+                    }
+                    
+                    activeTab.value = targetRole === 'student' ? 'dashboard' : targetRole === 'admin' ? 'admin' : 'jobs';
                 };
 
                 const handleAddJob = async () => {
@@ -1252,7 +1258,7 @@
                     messageView, activeMessage, composeRecipient, composeExternalEmail, composeSubject, composeBody, replyTo,
                     scenarios, selectedScenario, chatHistory, scenarioInput, isAiLoading, role, myApps, unreadCount, displayMessages,
                     authMode, loginForm, registerForm, handleLogin, handleRegister,
-                    handleSetupProfile, switchRoleTest, handleAddJob, handleSaveResume, handleSaveAppProgress, hasApplied,
+                    handleSetupProfile, attemptRoleAccess, handleAddJob, handleSaveResume, handleSaveAppProgress, hasApplied,
                     handleOpenApply, handleConfirmApply, getJobAppsCount, getJobApps, updateApplicationStatus, handleSendMessage,
                     handleReadMessage, handleDeleteMessage, handleDeleteUser, handleRoleChange, handleUpdateUserField, getStatusColors,
                     startScenario, handleSendAiMessage, handlePrintResume, handleExportScenario, handleLogout
@@ -1263,5 +1269,3 @@
 </body>
 </html>
 ```eof
-
-The page will now properly transition to the login state after clicking log out, and automatically sever all data connections in the background without requiring a hard refresh!

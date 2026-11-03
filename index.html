@@ -928,13 +928,16 @@
                                 if (myProf && !dataLoaded.value) {
                                     if (myProf.resumeData) resumeData.value = myProf.resumeData;
                                     if (myProf.appData) appData.value = myProf.appData;
+                                    
+                                    // Explicitly set the initial tab based on the user's role
+                                    if (myProf.role === 'student') activeTab.value = 'dashboard';
+                                    else if (myProf.role === 'teacher') activeTab.value = 'jobs';
+                                    else if (myProf.role === 'admin') activeTab.value = 'admin';
+                                    
                                     dataLoaded.value = true;
                                 }
 
                                 profile.value = myProf || null;
-                                if (myProf && activeTab.value === 'dashboard' && myProf.role === 'teacher') activeTab.value = 'jobs';
-                                if (myProf && activeTab.value === 'dashboard' && myProf.role === 'admin') activeTab.value = 'admin';
-                                if (myProf && myProf.role === 'student' && (!activeTab.value || activeTab.value === 'users' || activeTab.value === 'admin')) activeTab.value = 'dashboard';
                             });
 
                             unsubJobs = onSnapshot(getColRef('jobs'), (snap) => {

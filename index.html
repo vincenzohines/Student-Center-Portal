@@ -183,9 +183,9 @@
                         <div class="flex items-center space-x-4">
                             <!-- ROLE NAVIGATION -->
                             <div class="hidden md:flex bg-indigo-800 rounded-lg p-1">
-                                <button @click="attemptRoleAccess('student')" :class="{'bg-white text-indigo-800 shadow': role === 'student', 'text-indigo-200 hover:text-white': role !== 'student'}" class="px-3 py-1 text-xs font-semibold rounded-md transition-colors">Student View</button>
-                                <button @click="attemptRoleAccess('teacher')" :class="{'bg-white text-indigo-800 shadow': role === 'teacher', 'text-indigo-200 hover:text-white': role !== 'teacher'}" class="px-3 py-1 text-xs font-semibold rounded-md transition-colors">Teacher View</button>
-                                <button @click="attemptRoleAccess('admin')" :class="{'bg-white text-indigo-800 shadow': role === 'admin', 'text-indigo-200 hover:text-white': role !== 'admin'}" class="px-3 py-1 text-xs font-semibold rounded-md transition-colors">Admin View</button>
+                                <button @click="attemptRoleAccess('student')" :class="{'bg-white text-indigo-800 shadow': role === 'student' && activeTab !== 'unauthorized', 'text-indigo-200 hover:text-white': role !== 'student' || activeTab === 'unauthorized'}" class="px-3 py-1 text-xs font-semibold rounded-md transition-colors">Student View</button>
+                                <button @click="attemptRoleAccess('teacher')" :class="{'bg-white text-indigo-800 shadow': role === 'teacher' && activeTab !== 'unauthorized', 'text-indigo-200 hover:text-white': role !== 'teacher' || activeTab === 'unauthorized'}" class="px-3 py-1 text-xs font-semibold rounded-md transition-colors">Teacher View</button>
+                                <button @click="attemptRoleAccess('admin')" :class="{'bg-white text-indigo-800 shadow': role === 'admin' && activeTab !== 'unauthorized', 'text-indigo-200 hover:text-white': role !== 'admin' || activeTab === 'unauthorized'}" class="px-3 py-1 text-xs font-semibold rounded-md transition-colors">Admin View</button>
                             </div>
                             <div class="flex items-center text-sm font-medium bg-indigo-700 px-3 py-1.5 rounded-full">
                                 <i class="fas fa-user-circle text-indigo-200 mr-2 text-lg"></i>
@@ -201,9 +201,27 @@
             </nav>
 
             <main class="p-4 sm:p-6 lg:p-8">
+
+                <!-- UNAUTHORIZED SCREEN -->
+                <div v-if="activeTab === 'unauthorized'" class="max-w-2xl mx-auto text-center py-16">
+                    <i class="fas fa-lock text-6xl text-indigo-300 mb-6"></i>
+                    <h2 class="text-3xl font-bold text-gray-900 mb-4">Access Restricted</h2>
+                    <p class="text-gray-600 mb-8 text-lg">
+                        You are currently signed in as a <strong class="capitalize">{{ role }}</strong>. 
+                        This area requires a <strong class="capitalize">{{ unauthorizedRole }}</strong> account.
+                    </p>
+                    <div class="flex flex-col sm:flex-row items-center justify-center gap-4">
+                        <button @click="activeTab = role === 'student' ? 'dashboard' : role === 'admin' ? 'admin' : 'jobs'" class="w-full sm:w-auto px-6 py-3 bg-indigo-600 text-white font-bold rounded-lg hover:bg-indigo-700 transition flex items-center justify-center">
+                            <i class="fas fa-arrow-left mr-2"></i> Back to My Dashboard
+                        </button>
+                        <button @click="handleLogout" class="w-full sm:w-auto px-6 py-3 bg-white text-gray-700 border border-gray-300 font-bold rounded-lg hover:bg-gray-50 transition flex items-center justify-center">
+                            <i class="fas fa-sign-out-alt mr-2"></i> Log out to switch accounts
+                        </button>
+                    </div>
+                </div>
                 
                 <!-- DASHBOARD -->
-                <div v-if="activeTab === 'dashboard' && role === 'student'" class="max-w-5xl mx-auto space-y-6">
+                <div v-else-if="activeTab === 'dashboard' && role === 'student'" class="max-w-5xl mx-auto space-y-6">
                     <div>
                         <h2 class="text-2xl font-bold text-gray-800 flex items-center"><i class="fas fa-table-columns mr-2 text-indigo-600"></i> My Dashboard</h2>
                         <p class="text-gray-500 text-sm">Track your job applications and statuses.</p>
@@ -246,7 +264,7 @@
                 </div>
 
                 <!-- JOB BOARD -->
-                <div v-if="activeTab === 'jobs'" class="space-y-6 max-w-5xl mx-auto">
+                <div v-else-if="activeTab === 'jobs'" class="space-y-6 max-w-5xl mx-auto">
                     <div class="flex justify-between items-center border-b pb-4">
                         <div>
                             <h2 class="text-2xl font-bold text-gray-800">Job Board</h2>
@@ -308,7 +326,7 @@
                 </div>
 
                 <!-- MESSAGES -->
-                <div v-if="activeTab === 'messages'" class="max-w-6xl mx-auto flex h-[75vh] bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
+                <div v-else-if="activeTab === 'messages'" class="max-w-6xl mx-auto flex h-[75vh] bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
                     <div class="w-64 bg-gray-50 border-r border-gray-200 flex flex-col">
                         <div class="p-4 border-b border-gray-200">
                             <button @click="replyTo = null; messageView = 'compose'; composeRecipient = ''" class="w-full bg-indigo-600 text-white px-4 py-2.5 rounded-lg shadow-sm hover:bg-indigo-700 transition font-medium flex items-center justify-center">
@@ -433,7 +451,7 @@
                 </div>
 
                 <!-- RESUME BUILDER -->
-                <div v-if="activeTab === 'resume' && role === 'student'" class="max-w-4xl mx-auto bg-white p-8 rounded-xl shadow-sm border border-gray-200">
+                <div v-else-if="activeTab === 'resume' && role === 'student'" class="max-w-4xl mx-auto bg-white p-8 rounded-xl shadow-sm border border-gray-200">
                     <div class="flex justify-between items-start mb-8 border-b pb-4">
                         <div>
                             <h2 class="text-2xl font-bold text-gray-800 flex items-center"><i class="fas fa-file-alt mr-2 text-indigo-600"></i> My Resume</h2>
@@ -501,7 +519,7 @@
                 </div>
 
                 <!-- AI ROLE PLAY -->
-                <div v-if="activeTab === 'roleplay' && role === 'student'" class="max-w-4xl mx-auto space-y-6">
+                <div v-else-if="activeTab === 'roleplay' && role === 'student'" class="max-w-4xl mx-auto space-y-6">
                     <div class="flex justify-between items-center border-b pb-4">
                         <div>
                             <h2 class="text-2xl font-bold text-gray-800 flex items-center"><i class="fas fa-robot mr-2 text-indigo-600"></i> AI Role Play Scenarios</h2>
@@ -563,7 +581,7 @@
                 </div>
 
                 <!-- ADMIN PANEL -->
-                <div v-if="activeTab === 'admin' && role === 'admin'" class="max-w-5xl mx-auto space-y-6">
+                <div v-else-if="activeTab === 'admin' && role === 'admin'" class="max-w-5xl mx-auto space-y-6">
                     <div class="flex justify-between items-center border-b pb-4">
                         <div>
                             <h2 class="text-2xl font-bold text-gray-800 flex items-center"><i class="fas fa-shield-alt mr-2 text-indigo-600"></i> Admin Panel</h2>
@@ -587,6 +605,7 @@
                                     <td class="p-4"><input v-model="u.username" @blur="handleUpdateUserField(u.id, 'username', u.username)" placeholder="Set email/username" class="w-full text-sm text-gray-700 bg-transparent border-b border-transparent hover:border-gray-300 focus:border-indigo-500 focus:ring-0 outline-none py-1 transition-colors" /></td>
                                     <td class="p-4"><input v-model="u.password" @blur="handleUpdateUserField(u.id, 'password', u.password)" placeholder="Set password" class="w-full text-sm text-gray-700 bg-transparent border-b border-transparent hover:border-gray-300 focus:border-indigo-500 focus:ring-0 outline-none py-1 transition-colors" /></td>
                                     <td class="p-4">
+                                        <!-- Unlocked for Admins so you can revert your account if needed -->
                                         <select v-model="u.role" @change="handleRoleChange(u.id, u.role)" class="text-sm bg-gray-50 border border-gray-200 rounded-md focus:ring-indigo-500 focus:border-indigo-500 py-1.5 px-2">
                                             <option value="student">Student</option>
                                             <option value="teacher">Teacher</option>
@@ -840,6 +859,7 @@
                 const dataLoaded = ref(false);
 
                 const activeTab = ref('jobs');
+                const unauthorizedRole = ref('');
                 const allUsers = ref([]);
                 const jobs = ref([]);
                 const messages = ref([]);
@@ -958,7 +978,7 @@
                             if (unsubMsgs) unsubMsgs();
                             profile.value = null;
                             dataLoaded.value = false;
-                            activeTab.value = 'jobs'; // Reset tab gracefully on logout
+                            activeTab.value = 'jobs';
                         }
                     });
                 });
@@ -1032,8 +1052,8 @@
                     if (!profile.value) return;
                     
                     if (profile.value.role !== targetRole) {
-                        showNotification(`Access Denied: Please sign in with a ${targetRole} account to view this page.`);
-                        await handleLogout();
+                        unauthorizedRole.value = targetRole;
+                        activeTab.value = 'unauthorized';
                         return;
                     }
                     
@@ -1257,7 +1277,7 @@
 
                 return {
                     dbError,
-                    user, profile, isAuthLoading, activeTab, allUsers, jobs, messages, applications,
+                    user, profile, isAuthLoading, activeTab, unauthorizedRole, allUsers, jobs, messages, applications,
                     appData, resumeData, setupForm, newJob, notification, applyingToJob, appSignature, appDate, viewingApplicants,
                     messageView, activeMessage, composeRecipient, composeExternalEmail, composeSubject, composeBody, replyTo,
                     scenarios, selectedScenario, chatHistory, scenarioInput, isAiLoading, role, myApps, unreadCount, displayMessages,
